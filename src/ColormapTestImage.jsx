@@ -136,7 +136,6 @@ class ColormapTestImage extends Component {
         pn = (j*width + i) * 4;
         
         pv = i/width + Math.sin(Math.PI*2.0*i / 8.0) * row_amp + amp;
-        if (i == width-1) console.log('pv = ' + pv);
         this.set_pix(data, pn, pv, 0.0, 1.0);
       }
     }
