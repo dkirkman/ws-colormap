@@ -7,6 +7,7 @@ class ColormapTestImage extends Component {
     super(props);
 
     this.set_grayscale = this.set_grayscale.bind(this);
+    this.set_rainbow = this.set_rainbow.bind(this);
     this.set_scale1 = this.set_scale1.bind(this);
     this.set_d3_scale1 = this.set_d3_scale1.bind(this);
 
@@ -69,6 +70,40 @@ class ColormapTestImage extends Component {
            };
   }
 
+  normalized_rainbow(x) {
+    if (x < 1.0/6.0) {
+      return {red: 1, green: (x-0.0/6.0)*6.0, blue: 0};
+    } else if (x < 2.0/6.0) {
+      return {red: 1.0-(x-1.0/6.0)*6.0, green: 1, blue: 0};
+    } else if (x < 3.0/6.0) {
+      return {red: 0, green: 1, blue: (x-2.0/6.0)*6.0}; 
+    } else if (x < 4.0/6.0) {
+      return {red: 0, green: 1.0-(x-3.0/6.0)*6.0, blue:1};
+    } else if (x < 5.0/6.0) {
+      return {red: (x-4.0/6.0)*6, green: 0, blue: 1};
+    } else {
+      return {red: 1, green: 0, blue: 1-(x-5.0/6.0)*6.0};
+    }
+  }
+
+  set_rainbow(x) {
+    let nr = this.normalized_rainbow(x);
+    return {red: Math.round(255*nr.red),
+            green: Math.round(255*nr.green),
+            blue: Math.round(255*nr.blue)
+           };
+  }
+
+  set_constant_lightness(x) {
+    let phase = Math.round(250*x);
+    let color = chroma.hcl(phase, 60, 60);
+
+    return {'red': color.get('rgb.r'),
+            'green': color.get('rgb.g'),
+            'blue': color.get('rgb.b')
+            };
+  }
+
   set_scale1(nval) {
     let color = this.scale1(nval);
 
@@ -88,28 +123,33 @@ class ColormapTestImage extends Component {
   }
 
   initialize_colormap() {
-    console.log('start init colormap');
-
     this.cmap_size = 200;
     this.color_red = new Uint8Array(this.cmap_size);
     this.color_green = new Uint8Array(this.cmap_size);
     this.color_blue = new Uint8Array(this.cmap_size);
+    this.color_luminance = new Uint8Array(this.cmap_size);
 
-    let cmap_set = this.set_grayscale;
-    cmap_set = this.set_scale1;
-    cmap_set = this.set_d3_scale1;
+    var cmap_set;
+    if      (this.props.cmap === "rainbow") cmap_set = this.set_rainbow;
+    else if (this.props.cmap === "constant-lightness") 
+      cmap_set = this.set_constant_lightness;
+    else                               cmap_set = this.set_grayscale;
 
     var i, nval;
     for (i=0; i<this.cmap_size; ++i) {
       nval = i/this.cmap_size;
 
       let color = cmap_set(nval);
-      this.color_red[i] = color.red;
-      this.color_green[i] = color.green;
-      this.color_blue[i] = color.blue;
-    }
+      let ccolor = chroma.rgb(color.red, color.green, color.blue);
+      ccolor = ccolor.luminance(nval*0.7 + 0.15);
 
-    console.log('done init colormap');
+      this.color_red[i] = ccolor.get('rgb.r');
+      this.color_green[i] = ccolor.get('rgb.g');
+      this.color_blue[i] = ccolor.get('rgb.b');
+
+
+      this.color_luminance[i] = chroma(ccolor).luminance();
+    }
   }
 
   set_pix(data, pn, val, min, max) {

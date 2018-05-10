@@ -80,7 +80,6 @@ class ColormapRGBPlot extends Component {
       else if (x < 5.0/6.0) point.push(1.0);
       else if (x < 6.0/6.0) point.push(trans(1.0 - (x-5.0/6.0)*6.0));
 
-
       points.push(point);
     }
 
