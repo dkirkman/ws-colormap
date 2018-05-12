@@ -55,6 +55,25 @@ class ColormapTestImage extends Component {
     this.imageData = this.context.getImageData(0, 0, this.width, this.height);
     this.data = this.imageData.data;
 
+    if (this.props.lmap === "true") {
+      this.lmap_height = 20;
+      this.lmap_padding_top = 10;
+
+      let lmap_canvas = document.createElement('canvas');
+      lmap_canvas.style.margin = 'auto';
+      lmap_canvas.style.display = 'block';
+      lmap_canvas.style['padding-top'] = this.lmap_padding_top + 'px';
+      lmap_canvas.width = this.width;
+      lmap_canvas.height = this.lmap_height;
+      
+      this.myRef.current.append(lmap_canvas);
+      
+      this.lmap_context = lmap_canvas.getContext('2d');
+      this.lmap_imageData 
+        = this.lmap_context.getImageData(0, 0, this.width, this.lmap_height);
+      this.lmap_data = this.lmap_imageData.data;
+    } 
+
     if (typeof window !== 'undefined') {
       window.setTimeout(() => this.go(), 100);
     }
@@ -71,18 +90,28 @@ class ColormapTestImage extends Component {
   }
 
   normalized_rainbow(x) {
+    let trans = function(x) {
+      return x;
+    };
+    
+    if (this.props.trans === 'sin') {
+      trans = function(x) {
+        return Math.sin(x*Math.PI/2.0);
+      };
+    }
+
     if (x < 1.0/6.0) {
-      return {red: 1, green: (x-0.0/6.0)*6.0, blue: 0};
+      return {red: 1, green: trans((x-0.0/6.0)*6.0), blue: 0};
     } else if (x < 2.0/6.0) {
-      return {red: 1.0-(x-1.0/6.0)*6.0, green: 1, blue: 0};
+      return {red: trans(1.0-(x-1.0/6.0)*6.0), green: 1, blue: 0};
     } else if (x < 3.0/6.0) {
-      return {red: 0, green: 1, blue: (x-2.0/6.0)*6.0}; 
+      return {red: 0, green: 1, blue: trans((x-2.0/6.0)*6.0)}; 
     } else if (x < 4.0/6.0) {
-      return {red: 0, green: 1.0-(x-3.0/6.0)*6.0, blue:1};
+      return {red: 0, green: trans(1.0-(x-3.0/6.0)*6.0), blue:1};
     } else if (x < 5.0/6.0) {
-      return {red: (x-4.0/6.0)*6, green: 0, blue: 1};
+      return {red: trans((x-4.0/6.0)*6), green: 0, blue: 1};
     } else {
-      return {red: 1, green: 0, blue: 1-(x-5.0/6.0)*6.0};
+      return {red: 1, green: 0, blue: trans(1-(x-5.0/6.0)*6.0)};
     }
   }
 
@@ -96,7 +125,7 @@ class ColormapTestImage extends Component {
 
   set_constant_lightness(x) {
     let phase = Math.round(250*x);
-    let color = chroma.hcl(phase, 60, 60);
+    let color = chroma.hcl(phase, 60, 80);
 
     return {'red': color.get('rgb.r'),
             'green': color.get('rgb.g'),
@@ -127,7 +156,7 @@ class ColormapTestImage extends Component {
     this.color_red = new Uint8Array(this.cmap_size);
     this.color_green = new Uint8Array(this.cmap_size);
     this.color_blue = new Uint8Array(this.cmap_size);
-    this.color_luminance = new Uint8Array(this.cmap_size);
+    this.color_luminance = new Float32Array(this.cmap_size);
 
     var cmap_set;
     if      (this.props.cmap === "rainbow") cmap_set = this.set_rainbow;
@@ -135,20 +164,24 @@ class ColormapTestImage extends Component {
       cmap_set = this.set_constant_lightness;
     else                               cmap_set = this.set_grayscale;
 
+    let luminance = (color, val) => color;
+    if (this.props.luminance === 'linear') {
+      luminance = (color, val) => color.luminance(val);
+    }
     var i, nval;
     for (i=0; i<this.cmap_size; ++i) {
       nval = i/this.cmap_size;
 
       let color = cmap_set(nval);
       let ccolor = chroma.rgb(color.red, color.green, color.blue);
-      ccolor = ccolor.luminance(nval*0.7 + 0.15);
+      ccolor = luminance(ccolor, nval);
 
       this.color_red[i] = ccolor.get('rgb.r');
       this.color_green[i] = ccolor.get('rgb.g');
       this.color_blue[i] = ccolor.get('rgb.b');
 
-
       this.color_luminance[i] = chroma(ccolor).luminance();
+      this.color_luminance[i] = ccolor.luminance();
     }
   }
 
@@ -162,11 +195,25 @@ class ColormapTestImage extends Component {
     data[pn+3] = 255;
   }
 
+  set_lmap_pix(data, pn, val, min, max) {
+    let cmap_i = Math.round((val-min)/(max-min)*this.cmap_size);
+    if (cmap_i >= this.cmap_size) cmap_i = this.cmap_size - 1;
+
+    let lval = Math.round(this.color_luminance[cmap_i]*255);
+    data[pn]   = lval;
+    data[pn+1] = lval;
+    data[pn+2] = lval;
+    data[pn+3] = 255;
+  }
+
   go_rake() {
     this.initialize_colormap();
     let width = this.width;
     let height = this.height;
     let data = this.data;
+
+    let lmap_height = this.height;
+    let lmap_data = this.lmap_data;
 
     let amp = 0.05;
     var i, j, pn, pv, row_amp;
@@ -175,12 +222,26 @@ class ColormapTestImage extends Component {
       for (i=0; i<width; ++i) {
         pn = (j*width + i) * 4;
         
-        pv = i/width + Math.sin(Math.PI*2.0*i / 8.0) * row_amp + amp;
+        pv = i/width*(1.0-2*amp) + Math.sin(Math.PI*2.0*i / 8.0) * row_amp + amp;
         this.set_pix(data, pn, pv, 0.0, 1.0);
       }
     }
 
+    if (this.props.lmap === "true") {
+      for (i=0; i<width; ++i) {
+        for (j=0; j<lmap_height; ++j) {
+          pn = (j*width + i) * 4;
+          pv = i/width*(1.0-2*amp) + amp;
+
+          this.set_lmap_pix(lmap_data, pn, pv, 0.0, 1.0);
+        }
+      }
+    }
+
     this.context.putImageData(this.imageData, 0, 0);
+    if (this.props.lmap === "true") { 
+      this.lmap_context.putImageData(this.lmap_imageData, 0, 0);
+    }
   }
 
   go_sinc() {
@@ -226,9 +287,16 @@ class ColormapTestImage extends Component {
   }
 
   render() {
+    let total_height = this.height;
+    if (this.props.lmap === "true") {
+      total_height += this.lmap_height;
+      total_height += this.lmap_padding_top;
+    }
+
+    total_height = total_height + 'px';
     return (
       <div ref={this.myRef} 
-           style={{height: '200px', margin: 'auto', display: 'block'}}>
+           style={{height: total_height, margin: 'auto', display: 'block'}}>
       </div>
     );
   }
