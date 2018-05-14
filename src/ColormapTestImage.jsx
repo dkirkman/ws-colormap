@@ -9,36 +9,18 @@ class ColormapTestImage extends Component {
     this.set_grayscale = this.set_grayscale.bind(this);
     this.set_rainbow = this.set_rainbow.bind(this);
     this.set_scale1 = this.set_scale1.bind(this);
-    this.set_d3_scale1 = this.set_d3_scale1.bind(this);
+    this.set_cyclic_demon = this.set_cyclic_demon.bind(this);
 
     this.myRef = React.createRef();
-    this.scale1 = chroma.scale(['black', 'blue', 'red', 'white']).correctLightness();
-    this.scale1 = chroma.scale(['yellow', 'green', 'blue']);
-
-    console.log('d3 = ' + d3);
-    console.log(d3);
-
-    this.d3_scale1 = d3.scaleLinear()
-      .domain([0, 1])
-      .range(["hsl(222,30%,20%)", "hsl(62,100%,90%)"])
-//      .range(["hsl(62,100%,90%)", "hsl(222,30%,20%)"])
-      .interpolate(d3.interpolateHcl);
-
-    this.d3_scale1 = d3.interpolateInferno;
-    this.d3_scale1 = d3.interpolateCubehelixDefault;
-    this.d3_scale1 = d3.interpolateWarm;  // Not good
-    this.d3_scale1 = d3.interpolateCool;  // Also Not good
-    this.d3_scale1 = d3.interpolateBuGn;  // ok
-    this.d3_scale1 = d3.interpolateYlOrRd;
-    this.d3_scale1 = d3.interpolateSpectral;  // also not great, but a diverging scheme
-    this.d3_scale1 = d3.interpolateCubehelixDefault;
-
-     console.log('this.scale1 = ' + this.scale1);
+//    this.scale1 = chroma.scale(['red', 'green', 'blue', 'red'])
+    this.scale1 = chroma.scale(['black', 'red', 'white']).correctLightness();
+    this.scale2 = chroma.scale(['black', 'blue', 'white']).correctLightness();
   }
 
   componentDidMount() {
     this.width = 512;
-    this.height = 200;
+    this.height = 100;
+//    if (this.props.type === "sinc") this.height = 200;
 
     this.center_x = this.width/2.0;
     this.center_y = this.height/2.0;
@@ -89,6 +71,33 @@ class ColormapTestImage extends Component {
            };
   }
 
+  set_cyclic_grayscale(nval) {
+    nval *= 2;
+    if (nval > 1) nval = 2.0-nval;
+
+    return {'red': nval*255,
+            'green': nval*255,
+            'blue': nval*255
+           };    
+  }
+
+  set_cyclic_demon(nval) {
+    nval *= 2;
+    var c;
+
+    if (nval <= 1.0) {
+      c = this.scale1(nval);
+    } else {
+      nval = 2.0-nval;
+      c = this.scale2(nval);
+    }
+
+    return {red: c.get('rgb.r'),
+            blue: c.get('rgb.b'),
+            green: c.get('rgb.g')
+           };
+  }
+
   normalized_rainbow(x) {
     let trans = function(x) {
       return x;
@@ -134,16 +143,19 @@ class ColormapTestImage extends Component {
   }
 
   set_scale1(nval) {
+    console.log('set_scale1 ' + nval);
     let color = this.scale1(nval);
+    console.log('color = ' + color);
+    console.log(color);
 
-    return {'red': color.get('rgb.r'),
-            'green': color.get('rgb.g'),
-            'blue': color.get('rgb.b')
+    return {red: color.get('rgb.r'),
+            green: color.get('rgb.g'),
+            blue: color.get('rgb.b')
             };
   }
 
-  set_d3_scale1(nval) {
-    let color = d3.rgb(this.d3_scale1(nval));
+  set_d3(scale, nval) {
+    let color = d3.rgb(scale(nval));
 
     return {'red': color.r,
             'green': color.g,
@@ -162,7 +174,25 @@ class ColormapTestImage extends Component {
     if      (this.props.cmap === "rainbow") cmap_set = this.set_rainbow;
     else if (this.props.cmap === "constant-lightness") 
       cmap_set = this.set_constant_lightness;
-    else                               cmap_set = this.set_grayscale;
+    else if (this.props.cmap === "inferno") 
+      cmap_set = nval => this.set_d3(d3.interpolateInferno, nval);
+    else if (this.props.cmap === "cubehelix") 
+      cmap_set = nval => this.set_d3(d3.interpolateCubehelixDefault, nval);
+    else if (this.props.cmap === "bugn") 
+      cmap_set = nval => this.set_d3(d3.interpolateBuGn, nval);
+    else if (this.props.cmap === "warm") 
+      cmap_set = nval => this.set_d3(d3.interpolateWarm, nval);
+    else if (this.props.cmap === "cool") 
+      cmap_set = nval => this.set_d3(d3.interpolateCool, nval);
+    else if (this.props.cmap === "d3rainbow") 
+      cmap_set = nval => this.set_d3(d3.interpolateRainbow, nval);
+    else if (this.props.cmap === "sinebow")
+      cmap_set = nval => this.set_d3(d3.interpolateRainbow, nval);
+    else if (this.props.cmap === "cyclic-demon")
+      cmap_set = this.set_cyclic_demon;
+    else if (this.props.cmap === "cyclic-grayscale") 
+      cmap_set = this.set_cyclic_grayscale;
+    else cmap_set = this.set_grayscale;
 
     let luminance = (color, val) => color;
     if (this.props.luminance === 'linear') {
@@ -215,7 +245,7 @@ class ColormapTestImage extends Component {
     let lmap_height = this.height;
     let lmap_data = this.lmap_data;
 
-    let amp = 0.05;
+    let amp = 0.1;
     var i, j, pn, pv, row_amp;
     for (j=0; j<height; ++j) {
       row_amp = (1-j/height) * amp;
@@ -265,13 +295,17 @@ class ColormapTestImage extends Component {
         r = Math.sqrt(dx2+dy2);
 
         if (r > 0) {
-          pv = Math.sin(Math.PI*2*r / 20.0)/r;
+          let depress = Math.exp(-r/200);
+          pv = Math.sin(Math.PI*2*r / 50.0)*depress;
+          if (j == 50) {
+            console.log('r = ' + r + '  ' + pv*pv);
+          }
           pv = pv*pv;
         } else {
-          pv = 1.0;
+          pv = 0.0;
         }
 
-        this.set_pix(data, pn, pv, 0.0, 0.001);
+        this.set_pix(data, pn, pv, 0.0, 1.0);
       }
     }
 
