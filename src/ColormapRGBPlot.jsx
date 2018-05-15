@@ -1,11 +1,10 @@
 
 import React, { Component } from 'react';
-//import {select} from 'd3-selection';
-//import {scaleLinear} from 'd3-scale';
-//import {line} from 'd3-shape';
-//import {axisLeft, axisBottom} from 'd3-axis';
-
-import * as d3 from 'd3';
+import {select as d3_select} from 'd3-selection';
+import {scaleLinear as d3_scaleLinear} from 'd3-scale';
+import {line as d3_line} from 'd3-shape';
+import {axisLeft as d3_axisLeft, 
+        axisBottom as d3_axisBottom} from 'd3-axis';
 
 class ColormapRGBPlot extends Component {
   constructor(props) {
@@ -96,7 +95,7 @@ class ColormapRGBPlot extends Component {
     let green = this.getGreen();
     let blue = this.getBlue();
 
-    let svg = d3.select(this.myRef.current)
+    let svg = d3_select(this.myRef.current)
           .append("svg")
           .attr("width", this.width + this.margin.left + this.margin.right)
           .attr("height", this.height + this.margin.top + this.margin.bottom)
@@ -106,15 +105,15 @@ class ColormapRGBPlot extends Component {
           .attr("transform", "translate(" + this.margin.left + "," 
                 + this.margin.top + ")");
 
-    let x = d3.scaleLinear()
+    let x = d3_scaleLinear()
           .domain([0, 1])
           .range([0, this.width]);
 
-    let y = d3.scaleLinear()
+    let y = d3_scaleLinear()
           .domain([0, 1])
           .range([this.height, 0]);
 
-    let line = d3.line()
+    let line = d3_line()
           .x(d => x(d[0]))
           .y(d => y(d[1]));
 
@@ -147,11 +146,11 @@ class ColormapRGBPlot extends Component {
       .attr("d", line);
 
     svg.append("g")
-      .call(d3.axisLeft(y));
+      .call(d3_axisLeft(y));
 
     svg.append("g")
       .attr("transform", "translate(0," + this.height + ")")
-      .call(d3.axisBottom(x));
+      .call(d3_axisBottom(x));
   }
 
   
