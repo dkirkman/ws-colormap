@@ -1,5 +1,10 @@
 
 import React, { Component } from 'react';
+//import {select} from 'd3-selection';
+//import {scaleLinear} from 'd3-scale';
+//import {line} from 'd3-shape';
+//import {axisLeft, axisBottom} from 'd3-axis';
+
 import * as d3 from 'd3';
 
 class ColormapRGBPlot extends Component {
@@ -147,9 +152,6 @@ class ColormapRGBPlot extends Component {
     svg.append("g")
       .attr("transform", "translate(0," + this.height + ")")
       .call(d3.axisBottom(x));
-
-    console.log('svg = ' + svg);
-    console.log(svg);
   }
 
   

@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import chroma from 'chroma-js';
-import * as d3 from 'd3';
+import * as d3 from 'd3-scale-chromatic';
+import {rgb} from 'd3-color';
 
 class ColormapTestImage extends Component {
   constructor(props) {
@@ -15,6 +16,9 @@ class ColormapTestImage extends Component {
 //    this.scale1 = chroma.scale(['red', 'green', 'blue', 'red'])
     this.scale1 = chroma.scale(['black', 'red', 'white']).correctLightness();
     this.scale2 = chroma.scale(['black', 'blue', 'white']).correctLightness();
+
+    this.scale1a = chroma.scale(['black', 'white']).correctLightness();
+    this.scale1b = chroma.scale(['black', 'white']).correctLightness();
   }
 
   componentDidMount() {
@@ -155,7 +159,7 @@ class ColormapTestImage extends Component {
   }
 
   set_d3(scale, nval) {
-    let color = d3.rgb(scale(nval));
+    let color = rgb(scale(nval));
 
     return {'red': color.r,
             'green': color.g,
