@@ -124,7 +124,7 @@ class ColormapTestImage extends Component {
       return x;
     };
     
-    if (this.props.trans === 'sin') {
+    if (this.state.cmap === 'kludge-rainbow') {
       trans = function(x) {
         return Math.sin(x*Math.PI/2.0);
       };
@@ -190,6 +190,7 @@ class ColormapTestImage extends Component {
 
     var cmap_set;
     if      (this.state.cmap === "rainbow") cmap_set = this.set_rainbow;
+    else if (this.state.cmap === "kludge-rainbow") cmap_set = this.set_rainbow;
     else if (this.state.cmap === "constant-lightness") 
       cmap_set = this.set_constant_lightness;
     else if (this.state.cmap === "inferno") 

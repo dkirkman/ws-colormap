@@ -24,11 +24,19 @@ class ColormapSelector extends Component {
           <optgroup label="David maps">
             <option value="grayscale">Grayscale</option>
             <option value="rainbow">Rainbow</option>
-            <option value="cyclic_rainbow_kludge">Kludge Rainbow</option>
+            <option value="kludge-rainbow">Kludge Rainbow</option>
+            <option value="constant-lightness">Constant Lightness</option>
+            <option value="cyclic-grayscale">Cyclic Grayscale</option>
+            <option value="cyclic-demon">Cyclic Demon</option>
           </optgroup>
 
           <optgroup label="d3 maps">
             <option value="inferno">Inferno</option>
+            <option value="cubehelix">CubeHelix</option>
+            <option value="bugn">BuGn</option>
+            <option value="warm">Warm</option>
+            <option value="cool">Cool</option>
+            <option value="d3rainbow">Rainbow</option>
           </optgroup>
         </select>
         {this.expsin}
