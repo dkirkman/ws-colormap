@@ -7,6 +7,9 @@ class ColormapTestImage extends Component {
   constructor(props) {
     super(props);
 
+    this.state = {cmap: this.props.cmap
+                 };
+
     this.set_grayscale = this.set_grayscale.bind(this);
     this.set_rainbow = this.set_rainbow.bind(this);
     this.set_scale1 = this.set_scale1.bind(this);
@@ -22,9 +25,10 @@ class ColormapTestImage extends Component {
   }
 
   componentDidMount() {
+    this.is_mounted = true;
+
     this.width = 512;
     this.height = 100;
-//    if (this.props.type === "sinc") this.height = 200;
 
     this.center_x = this.width/2.0;
     this.center_y = this.height/2.0;
@@ -37,8 +41,9 @@ class ColormapTestImage extends Component {
 
     this.myRef.current.append(canvas);
 
-    this.context = canvas.getContext('2d');
-    this.imageData = this.context.getImageData(0, 0, this.width, this.height);
+    this.canvas_context = canvas.getContext('2d');
+    this.imageData 
+      = this.canvas_context.getImageData(0, 0, this.width, this.height);
     this.data = this.imageData.data;
 
     if (this.props.lmap === "true") {
@@ -61,11 +66,23 @@ class ColormapTestImage extends Component {
     } 
 
     if (typeof window !== 'undefined') {
-      window.setTimeout(() => this.go(), 100);
+      window.setTimeout(() => this.go(), 50);
     }
   }
 
+  shouldComponentUpdate(nextPrpos, nextState) {
+    return nextState.cmap != this.state.cmap;
+  }
+
+  componentDidUpdate(prev_props, prev_state) {
+    this.go();
+  }
+
   componentWillUnmount() {
+  }
+
+  set_cmap(cmap) {
+    this.setState({cmap: cmap});
   }
 
   set_grayscale(nval) {
@@ -147,10 +164,7 @@ class ColormapTestImage extends Component {
   }
 
   set_scale1(nval) {
-    console.log('set_scale1 ' + nval);
     let color = this.scale1(nval);
-    console.log('color = ' + color);
-    console.log(color);
 
     return {red: color.get('rgb.r'),
             green: color.get('rgb.g'),
@@ -175,26 +189,24 @@ class ColormapTestImage extends Component {
     this.color_luminance = new Float32Array(this.cmap_size);
 
     var cmap_set;
-    if      (this.props.cmap === "rainbow") cmap_set = this.set_rainbow;
-    else if (this.props.cmap === "constant-lightness") 
+    if      (this.state.cmap === "rainbow") cmap_set = this.set_rainbow;
+    else if (this.state.cmap === "constant-lightness") 
       cmap_set = this.set_constant_lightness;
-    else if (this.props.cmap === "inferno") 
+    else if (this.state.cmap === "inferno") 
       cmap_set = nval => this.set_d3(d3.interpolateInferno, nval);
-    else if (this.props.cmap === "cubehelix") 
+    else if (this.state.cmap === "cubehelix") 
       cmap_set = nval => this.set_d3(d3.interpolateCubehelixDefault, nval);
-    else if (this.props.cmap === "bugn") 
+    else if (this.state.cmap === "bugn") 
       cmap_set = nval => this.set_d3(d3.interpolateBuGn, nval);
-    else if (this.props.cmap === "warm") 
+    else if (this.state.cmap === "warm") 
       cmap_set = nval => this.set_d3(d3.interpolateWarm, nval);
-    else if (this.props.cmap === "cool") 
+    else if (this.state.cmap === "cool") 
       cmap_set = nval => this.set_d3(d3.interpolateCool, nval);
-    else if (this.props.cmap === "d3rainbow") 
+    else if (this.state.cmap === "d3rainbow") 
       cmap_set = nval => this.set_d3(d3.interpolateRainbow, nval);
-    else if (this.props.cmap === "sinebow")
-      cmap_set = nval => this.set_d3(d3.interpolateRainbow, nval);
-    else if (this.props.cmap === "cyclic-demon")
+    else if (this.state.cmap === "cyclic-demon")
       cmap_set = this.set_cyclic_demon;
-    else if (this.props.cmap === "cyclic-grayscale") 
+    else if (this.state.cmap === "cyclic-grayscale") 
       cmap_set = this.set_cyclic_grayscale;
     else cmap_set = this.set_grayscale;
 
@@ -272,7 +284,7 @@ class ColormapTestImage extends Component {
       }
     }
 
-    this.context.putImageData(this.imageData, 0, 0);
+    this.canvas_context.putImageData(this.imageData, 0, 0);
     if (this.props.lmap === "true") { 
       this.lmap_context.putImageData(this.lmap_imageData, 0, 0);
     }
@@ -301,9 +313,6 @@ class ColormapTestImage extends Component {
         if (r > 0) {
           let depress = Math.exp(-r/200);
           pv = Math.sin(Math.PI*2*r / 50.0)*depress;
-          if (j == 50) {
-            console.log('r = ' + r + '  ' + pv*pv);
-          }
           pv = pv*pv;
         } else {
           pv = 0.0;
@@ -313,7 +322,7 @@ class ColormapTestImage extends Component {
       }
     }
 
-    this.context.putImageData(this.imageData, 0, 0);
+    this.canvas_context.putImageData(this.imageData, 0, 0);
   }
 
   go() {
@@ -332,6 +341,7 @@ class ColormapTestImage extends Component {
     }
 
     total_height = total_height + 'px';
+
     return (
       <div ref={this.myRef} 
            style={{height: total_height, margin: 'auto', display: 'block'}}>
