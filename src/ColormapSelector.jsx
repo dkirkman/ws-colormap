@@ -15,7 +15,7 @@ class ColormapSelector extends Component {
   }
 
   render() {
-    this.expsin = <ColormapTestImage ref={this.expsin_ref} type="sinc"/>;
+    this.expsin = <ColormapTestImage ref={this.expsin_ref} type="expsin"/>;
     this.rake = <ColormapTestImage ref={this.rake_ref} type="rake" lmap="true"/>;
 
     return (

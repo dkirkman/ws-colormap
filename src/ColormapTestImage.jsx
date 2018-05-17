@@ -1,27 +1,16 @@
 import React, { Component } from 'react';
 import chroma from 'chroma-js';
-import * as d3 from 'd3-scale-chromatic';
-import {rgb} from 'd3-color';
+
+import Colormap from './Colormap.jsx';
 
 class ColormapTestImage extends Component {
   constructor(props) {
     super(props);
 
-    this.state = {cmap: this.props.cmap
-                 };
-
-    this.set_grayscale = this.set_grayscale.bind(this);
-    this.set_rainbow = this.set_rainbow.bind(this);
-    this.set_scale1 = this.set_scale1.bind(this);
-    this.set_cyclic_demon = this.set_cyclic_demon.bind(this);
+    this.state = {cmap: this.props.cmap};
 
     this.myRef = React.createRef();
-//    this.scale1 = chroma.scale(['red', 'green', 'blue', 'red'])
-    this.scale1 = chroma.scale(['black', 'red', 'white']).correctLightness();
-    this.scale2 = chroma.scale(['black', 'blue', 'white']).correctLightness();
-
-    this.scale1a = chroma.scale(['black', 'white']).correctLightness();
-    this.scale1b = chroma.scale(['black', 'white']).correctLightness();
+    this.colormap = new Colormap();
   }
 
   componentDidMount() {
@@ -85,102 +74,6 @@ class ColormapTestImage extends Component {
     this.setState({cmap: cmap});
   }
 
-  set_grayscale(nval) {
-    return {'red': nval*255,
-            'green': nval*255,
-            'blue': nval*255
-           };
-  }
-
-  set_cyclic_grayscale(nval) {
-    nval *= 2;
-    if (nval > 1) nval = 2.0-nval;
-
-    return {'red': nval*255,
-            'green': nval*255,
-            'blue': nval*255
-           };    
-  }
-
-  set_cyclic_demon(nval) {
-    nval *= 2;
-    var c;
-
-    if (nval <= 1.0) {
-      c = this.scale1(nval);
-    } else {
-      nval = 2.0-nval;
-      c = this.scale2(nval);
-    }
-
-    return {red: c.get('rgb.r'),
-            blue: c.get('rgb.b'),
-            green: c.get('rgb.g')
-           };
-  }
-
-  normalized_rainbow(x) {
-    let trans = function(x) {
-      return x;
-    };
-    
-    if (this.state.cmap === 'kludge-rainbow') {
-      trans = function(x) {
-        return Math.sin(x*Math.PI/2.0);
-      };
-    }
-
-    if (x < 1.0/6.0) {
-      return {red: 1, green: trans((x-0.0/6.0)*6.0), blue: 0};
-    } else if (x < 2.0/6.0) {
-      return {red: trans(1.0-(x-1.0/6.0)*6.0), green: 1, blue: 0};
-    } else if (x < 3.0/6.0) {
-      return {red: 0, green: 1, blue: trans((x-2.0/6.0)*6.0)}; 
-    } else if (x < 4.0/6.0) {
-      return {red: 0, green: trans(1.0-(x-3.0/6.0)*6.0), blue:1};
-    } else if (x < 5.0/6.0) {
-      return {red: trans((x-4.0/6.0)*6), green: 0, blue: 1};
-    } else {
-      return {red: 1, green: 0, blue: trans(1-(x-5.0/6.0)*6.0)};
-    }
-  }
-
-  set_rainbow(x) {
-    let nr = this.normalized_rainbow(x);
-    return {red: Math.round(255*nr.red),
-            green: Math.round(255*nr.green),
-            blue: Math.round(255*nr.blue)
-           };
-  }
-
-  set_constant_lightness(x) {
-    let phase = Math.round(250*x);
-    let color = chroma.hcl(phase, 60, 80);
-
-    return {'red': color.get('rgb.r'),
-            'green': color.get('rgb.g'),
-            'blue': color.get('rgb.b')
-            };
-  }
-
-  set_scale1(nval) {
-    let color = this.scale1(nval);
-
-    return {red: color.get('rgb.r'),
-            green: color.get('rgb.g'),
-            blue: color.get('rgb.b')
-            };
-  }
-
-  set_d3(scale, nval) {
-    let color = rgb(scale(nval));
-
-    return {'red': color.r,
-            'green': color.g,
-            'blue': color.b
-            };
-  }
-
   initialize_colormap() {
     this.cmap_size = 200;
     this.color_red = new Uint8Array(this.cmap_size);
@@ -188,28 +81,7 @@ class ColormapTestImage extends Component {
     this.color_blue = new Uint8Array(this.cmap_size);
     this.color_luminance = new Float32Array(this.cmap_size);
 
-    var cmap_set;
-    if      (this.state.cmap === "rainbow") cmap_set = this.set_rainbow;
-    else if (this.state.cmap === "kludge-rainbow") cmap_set = this.set_rainbow;
-    else if (this.state.cmap === "constant-lightness") 
-      cmap_set = this.set_constant_lightness;
-    else if (this.state.cmap === "inferno") 
-      cmap_set = nval => this.set_d3(d3.interpolateInferno, nval);
-    else if (this.state.cmap === "cubehelix") 
-      cmap_set = nval => this.set_d3(d3.interpolateCubehelixDefault, nval);
-    else if (this.state.cmap === "bugn") 
-      cmap_set = nval => this.set_d3(d3.interpolateBuGn, nval);
-    else if (this.state.cmap === "warm") 
-      cmap_set = nval => this.set_d3(d3.interpolateWarm, nval);
-    else if (this.state.cmap === "cool") 
-      cmap_set = nval => this.set_d3(d3.interpolateCool, nval);
-    else if (this.state.cmap === "d3rainbow") 
-      cmap_set = nval => this.set_d3(d3.interpolateRainbow, nval);
-    else if (this.state.cmap === "cyclic-demon")
-      cmap_set = this.set_cyclic_demon;
-    else if (this.state.cmap === "cyclic-grayscale") 
-      cmap_set = this.set_cyclic_grayscale;
-    else cmap_set = this.set_grayscale;
+    let cmap_set = this.colormap.get_map(this.state.cmap);
 
     let luminance = (color, val) => color;
     if (this.props.luminance === 'linear') {
@@ -291,7 +163,7 @@ class ColormapTestImage extends Component {
     }
   }
 
-  go_sinc() {
+  go_expsin() {
     this.initialize_colormap();
 
     let height = this.height;
@@ -327,8 +199,8 @@ class ColormapTestImage extends Component {
   }
 
   go() {
-    if (this.props.type === 'sinc') {
-      return this.go_sinc();
+    if (this.props.type === 'expsin') {
+      return this.go_expsin();
     } else if (this.props.type === 'rake') {
       return this.go_rake();
     }
