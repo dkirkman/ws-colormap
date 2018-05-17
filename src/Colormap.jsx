@@ -21,11 +21,31 @@ class Colormap {
          return this.cyclic_demon(scalename);
       case "cyclic-grayscale":
          return this.cyclic_grayscale(scalename);
+      case "blues":
+      case "greens":
+      case "greys":
+      case "oranges":
+      case "purples":
+      case "reds":
+      case "viridis":
       case "inferno":
-      case "cubehelix":
-      case "bugn":
+      case "magma":
+      case "plasma":
       case "warm":
       case "cool":
+      case "cubehelix":
+      case "bugn":
+      case "bupu":
+      case "gnbu":
+      case "orrd":
+      case "pubugn":
+      case "pubu":
+      case "purd":
+      case "rdpu":
+      case "ylgnbu":
+      case "ylgn":
+      case "ylorbr":
+      case "ylorrd":
       case "d3rainbow":
          return this.d3(scalename);
       default:
@@ -123,8 +143,41 @@ class Colormap {
   d3(scalename) {
     var scale;
     switch (scalename) {
+      case "blues":
+         scale = d3.interpolateBlues;
+         break;
+      case "greens":
+         scale = d3.interpolateGreens;
+         break;
+      case "greys":
+         scale = d3.interpolateGreys;
+         break;
+      case "oranges":
+         scale = d3.interpolateOranges;
+         break;
+      case "purples":
+         scale = d3.interpolatePurples;
+         break;
+      case "reds":
+         scale = d3.interpolateReds;
+         break;
+      case "viridis":
+         scale = d3.interpolateViridis;
+         break;
       case "inferno":
          scale = d3.interpolateInferno;
+         break;
+      case "magma":
+         scale = d3.interpolateMagma;
+         break;
+      case "plasma":
+         scale = d3.interpolatePlasma;
+         break;
+      case "warm":
+         scale = d3.interpolateWarm;
+         break;
+      case "cool":
+         scale = d3.interpolateCool;
          break;
       case "cubehelix":
          scale = d3.interpolateCubehelixDefault;
@@ -132,11 +185,38 @@ class Colormap {
       case "bugn":
          scale = d3.interpolateBuGn;
          break;
-      case "warm":
-         scale = d3.interpolateWarm;
+      case "bupu":
+         scale = d3.interpolateBuPu;
          break;
-      case "cool":
-         scale = d3.interpolateCool;
+      case "gnbu":
+         scale = d3.interpolateGnBu;
+         break;
+      case "orrd":
+         scale = d3.interpolateOrRd;
+         break;
+      case "pubugn":
+         scale = d3.interpolatePuBuGn;
+         break;
+      case "pubu":
+         scale = d3.interpolatePuBu;
+         break;
+      case "purd":
+         scale = d3.interpolatePuRd;
+         break;
+      case "rdpu":
+         scale = d3.interpolateRdPu;
+         break;
+      case "ylgnbu":
+         scale = d3.interpolateYlGnBu;
+         break;
+      case "ylgn":
+         scale = d3.interpolateYlGn;
+         break;
+      case "ylorbr":
+         scale = d3.interpolateYlOrBr;
+         break;
+      case "ylorrd":
+         scale = d3.interpolateYlOrRd;
          break;
       case "d3rainbow":
          scale = d3.interpolateRainbow;

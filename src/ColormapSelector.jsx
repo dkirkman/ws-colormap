@@ -23,20 +23,45 @@ class ColormapSelector extends Component {
         <select onChange={this.select_changed}>
           <optgroup label="David maps">
             <option value="grayscale">Grayscale</option>
-            <option value="rainbow">Rainbow</option>
-            <option value="kludge-rainbow">Kludge Rainbow</option>
             <option value="constant-lightness">Constant Lightness</option>
             <option value="cyclic-grayscale">Cyclic Grayscale</option>
+            <option value="rainbow">Cyclic Rainbow</option>
+            <option value="kludge-rainbow">Cyclic Kludge Rainbow</option>
             <option value="cyclic-demon">Cyclic Demon</option>
           </optgroup>
 
           <optgroup label="d3 maps">
+            <option value="blues">Blues</option>
+            <option value="greens">Greens</option>
+            <option value="greys">Greys</option>
+            <option value="oranges">Oranges</option>
+            <option value="purples">Purples</option>
+            <option value="reds">Reds</option>
+
+            <option value="viridis">Viridis</option>
             <option value="inferno">Inferno</option>
-            <option value="cubehelix">CubeHelix</option>
-            <option value="bugn">BuGn</option>
+            <option value="magma">Magma</option>
+            <option value="plasma">Plasma</option>
             <option value="warm">Warm</option>
             <option value="cool">Cool</option>
-            <option value="d3rainbow">Rainbow</option>
+            <option value="cubehelix">CubeHelix</option>
+
+            <option value="bugn">BuGn</option>
+            <option value="bupu">BuPu</option>
+            <option value="gnbu">GnBu</option>
+            <option value="orrd">OrRd</option>
+
+            <option value="pubugn">PuBuGn</option>
+            <option value="pubu">PuBu</option>
+            <option value="purd">PuRd</option>
+            <option value="rdpu">RdPu</option>
+
+            <option value="ylgnbu">YlGnBu</option>
+            <option value="ylgn">YlGn</option>
+            <option value="ylorbr">YlOrBr</option>
+            <option value="ylorrd">YlOrRd</option>
+
+            <option value="d3rainbow">Cyclic Rainbow</option>
           </optgroup>
         </select>
         {this.expsin}
